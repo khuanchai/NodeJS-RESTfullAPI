@@ -1,7 +1,7 @@
 const config = require('./config');
+const logger = require('./lib/log4js');
 const mongoose = require('./lib/mongoose');
 const app = require('./lib/express');
-const logger = require('./lib/log4js');
 const chalk = require('chalk');
 
 

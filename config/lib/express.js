@@ -17,7 +17,7 @@ app.use((req, res, next) => {
 
 // load Route
 let pathRouts = path.resolve(__dirname, '../../routes');
-logger.debug(pathRouts);
+// logger.debug(pathRouts);
 let files = fs.readdirSync(pathRouts, { encoding: 'utf8' });
 files.forEach(file => {
     let route = `${pathRouts}/${file}`;
