@@ -1,11 +1,12 @@
-const config = require('../config');
+const configs = require('config');
 const logger = require('./log4js');
 const mongoose = require('mongoose');
 const chalk = require('chalk');
 const fs = require('fs');
 const path = require('path');
 
-let { uris, options, debug } = config.db;
+let { uris, options, debug } = configs.get('db');
+
 
 mongoose.set('debug', debug);
 mongoose.Promise = global.Promise;

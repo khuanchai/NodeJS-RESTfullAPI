@@ -1,11 +1,12 @@
-const config = require('../config');
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 const fs = require('fs');
 const path = require('path');
 const logger = require('./log4js');
+var morgan = require('morgan')
 
+app.use(morgan('combined'))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use((req, res, next) => {

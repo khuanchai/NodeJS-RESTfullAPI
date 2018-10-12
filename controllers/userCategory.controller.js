@@ -2,57 +2,42 @@ const UserCategory = require('mongoose').model('UserCategory');
 const logger = require('../config/lib/log4js');
 const _ = require('lodash');
 
-exports.read = function (req, res) {
-    logger.debug('--- controller ---');
+exports.read = (req, res) => {
     UserCategory.find({}).then(users => {
         res.send({ success: true, users });
     }).catch(err => {
-        res.status(400).send({ success: false, err });
+        res.status(400).send({ success: false, error: err.message });
     });
 }
 
-exports.paramOne = function (req, res, next, id) {
-    console.log('test');
-    UserCategory.findOne({ _id: id }, (err, user) => {
-        if (!err) {
-            req.userCate = user;
-        }
+exports.paramOne = (req, res, next, id) => {
+    UserCategory.findById({ _id: id }).then(user => {
+        req.userCate = user;
         next();
-    });
-    // UserCategory.findById({ _id: id }).then(user => {
-    //     req.userCate = user;
-    //     next();
-    // }).catch(err => next());
+    }).catch(err => next());
 }
 
-exports.readOne = function (req, res) {
+exports.readOne = (req, res) => {
     res.send(req.userCate);
 }
 
-exports.create = function (req, res) {
-    return new Promise((resolve, reject) => {
-        UserCategory.create(req.body, (err, user) => {
-            if (err) {
-                reject(res.json({ success: false, err }));
-            }
-            resolve(res.json({ success: true, user }));
-        });
-
+exports.create = (req, res) => {
+    let userCategory = new UserCategory(req.body);
+    userCategory.save().then(() => {
+        res.send({ success: true, user: userCategory });
+    }).catch(err => {
+        res.status(400).send({ success: false, err: error.message })
     });
-
 }
 
-exports.update = function (req, res) {
-    return new Promise((resolve, reject) => {
-        let data = req.body;
-        let id = req.params.id;
-        _.unset(data, "_id");
-        UserCategory.findByIdAndUpdate({ _id: id }, data, { new: true }, (err, user) => {
-            if (err) {
-                reject(res.json({ success: false, err }));
-            }
-            resolve(res.json({ success: true, user }));
-        })
+exports.update = (req, res) => {
+    let data = _.pick(req.body, ['name', 'description']);
+    let id = req.params.id;
+    UserCategory.findByIdAndUpdate({ _id: id }, { $set: data }, { new: true }, (err, user) => {
+        if (err) return res.status(204).send({ success: true, user });
+        res.status(400).send({ success: true, user });
+    }).catch(err => {
+        res.status(400).send({ success: false, err: error.message })
     });
 }
 
@@ -60,9 +45,9 @@ exports.delete = function (req, res) {
     return new Promise((resolve, reject) => {
         req.userCate.remove(function (err, user) {
             if (err) {
-                reject(res.json({ success: false, err }));
+                reject(res.send({ success: false, err }));
             }
-            resolve(res.json({ success: true, user }));
+            resolve(res.send({ success: true, user }));
         });
     });
 }
