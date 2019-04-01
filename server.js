@@ -1,2 +1,1 @@
-const server = require('./config/app');
-server.start();
+require('./config/app');
