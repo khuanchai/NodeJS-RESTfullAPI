@@ -22,12 +22,20 @@ exports.closeConnect = () => {
 }
 
 exports.loadModels = () => {
+  let primises = [];
   let pathModels = path.resolve(__dirname, '../../models');
   let models = fs.readdirSync(pathModels);
   models.forEach(model => {
-    let pathModel = `${pathModels}\\${model}`;
-    require(pathModel);
+    let primise = new Promise((resolve, reject) => {
+      let pathModel = `${pathModels}\\${model}`;
+      require(pathModel);
+      return resolve(model);
+    });
+    primises.push(primise);
   });
+
+  return primises;
+
 }
 
 

@@ -1,0 +1,12 @@
+{
+  "_id" : "5caee97c5b0f3738a8b5ae9b",
+  "status" : "user",
+  "tokens" : [ 
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1Y2FlZTk3YzViMGYzNzM4YThiNWFlOWIiLCJpYXQiOjE1NTQ5NzA1Njh9.vvjZttgZxBomumsNmls3wAZ0hVttVwbAAiBLuANHzlM"
+  ],
+  "firstname" : "ทดสอบการบันทึกข้อมูล",
+  "lastname" : "pongseart",
+  "username" : "khuanchai1834",
+  "password" : "$2a$10$pEbYwHiERraAX/mmfofgf.2OO93XNKj2X.q6wQphecsBPZ8je6UZm",
+  "__v" : 6
+}

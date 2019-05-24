@@ -1,0 +1,21 @@
+{
+  "resultCode": "20000",
+  "resultDescription": "Success",
+  "developerMessage": "Success",
+  "dataList": [
+    {
+      "locationCode": 1100,
+      "locationName": "สาขาอาคารเอไอเอส 2",
+      "bookNo": "001",
+      "receiptType": "ABB",
+      "company": "AWN"
+    },
+    {
+      "locationCode": 1100,
+      "locationName": "สาขาอาคารเอไอเอส 2",
+      "bookNo": "002",
+      "receiptType": "FULL",
+      "company": "AWN"
+    }
+  ]
+}

@@ -9,7 +9,8 @@ const chalk = require('chalk');
 const app = express();
 const isEmpty = require('lodash').isEmpty;
 const multer = require('multer');
-const upload = multer(require('./multer.js'))
+const passport = require('passport');
+const session = require('express-session')
 
 exports.initMiddleware = () => {
   app.use(bodyParser.json());     // req.body
@@ -21,6 +22,15 @@ exports.initMiddleware = () => {
     next();
   });
   app.use(morgan('tiny'));
+  app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: true }
+  }))
+  app.use(passport.initialize());
+  app.use(passport.session());
+  require('../lib/passport.js').jwtStrategy(passport);
   return app;
 }
 
@@ -33,6 +43,9 @@ exports.loadRoutes = (app) => {
     if (!isEmpty(router)) {
       app.use(config.prefix, router);
     }
+  });
+  app.use((req, res, next) => {
+    res.status(404).send({ error: "Sorry, page not found" });
   });
 }
 

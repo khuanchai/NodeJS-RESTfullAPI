@@ -7,13 +7,15 @@ const chalk = require('chalk');
 // STEP 1: connect mongodb
 mongoose.connection().then(res => {
   // STEP 2: load models
-  mongoose.loadModels();
-  // STEP 3: config express
-  const app = express.initMiddleware();
-  // STEP 4: load route
-  express.loadRoutes(app);
-  // STEP 5: star server
-  express.starServer(app);
+  let promises = mongoose.loadModels();
+  Promise.all(promises).then(aaa => {
+    // STEP 3: config express
+    const app = express.initMiddleware();
+    // STEP 4: load route
+    express.loadRoutes(app);
+    // STEP 5: star server
+    express.starServer(app);
+  });
 }).catch(err => {
   log4js.debug(err);
   mongoose.closeConnect();

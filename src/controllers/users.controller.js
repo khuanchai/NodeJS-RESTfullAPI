@@ -1,59 +1,194 @@
 const Users = require('mongoose').model('Users');
-const ObjectId = require('mongoose').Types.ObjectId;
-const _ = require('lodash');
-const Joi = require('joi');
+const logger = require('../config/lib/log4js');
+const lodash = require('lodash');
+const validates = require('../validates/users.validate');
+const chalk = require('chalk');
+const service = require('../services/mongodb/users.service');
 
-exports.registering = (req, res) => {
-    let payload = _.pick(req.body, ['email', 'password']);
+const Responsive = {
+  success: false,
+  data: null,
+}
 
-    // Validate Data
-    let { error, value } = Validate(payload);
-    if (error) return res.status(400).send(error.details[0].message);
+exports.create = (req, res) => {
+  let resFront = Object.assign({}, Responsive);
+  let payload = lodash.pick(req.body, ['firstname', 'lastname', 'username', 'password']);
+  let testCaseName = 'USERS-CREATE';
 
-    // Validate Email Uniq
-    Users.findOne({ email: payload.email }).then(doc => {
-        if (doc) return res.status(400).send('User already registered.');
-        let user = new Users(payload);
-        user.generateAuthToken().then(data => {
-            res.header('x-auth', data.token).send(data.user);
-        });
-    }).catch(err => res.status(404).send(err));
+  try {
 
+    // validates
+    let error = validates.registering(payload);
+    if (error) {
+      resFront.error = error;
+      logger.debug(chalk.yellow('Validate invalid'));
+      return res.status(400).send(resFront);
+    }
 
+    // call service
+    service.registering(testCaseName, payload).then(resMongo => {
+      resFront.data = resMongo;
+      resFront.success = true;
+      res.header('x-auth', resMongo.token).send(resFront);
+    }).catch(err => {
+      resFront.error = err.message;
+      return res.status(400).send(resFront);
+    });
+
+  } catch (err) {
+    resFront.error = err.message;
+    return res.status(400).send(resFront);
+  }
 }
 
 exports.login = (req, res) => {
-    let payload = _.pick(req.body, ['email', 'password']);
-    console.log(payload);
-    // Validate Data
-    let { error, value } = Validate(payload);
-    if (error) return res.status(400).send(error.details[0].message);
+  let payload = lodash.pick(req.body, ['username', 'password']);
+  let resFront = Object.assign({}, Responsive);
+  let testCaseName = 'USERS-LOGIN';
+  try {
 
-    // Validate Email
-    Users.findOne({ email: payload.email }).then(user => {
-        if (!user) return res.status(400).send('Email is invalid');
-        if (payload.password != user.password) return res.status(400).send('Password is invalid');
+    // validates
+    let error = validates.login(payload);
+    if (error) {
+      resFront.error = error;
+      return res.status(400).send(resFront);
+    }
 
-        user.generateAuthToken().then(data => {
-            res.header('x-auth', data.token).send(data.user);
-        });
-
+    // call service
+    service.login(testCaseName, payload).then(resMongo => {
+      resFront.success = true;
+      resFront.data = resMongo;
+      return res.send(resFront);
+    }).catch(err => {
+      resFront.error = err.message;
+      return res.status(400).send(resFront);
     });
+
+  } catch (err) {
+    resFront.error = err.message;
+    return res.status(400).send(resFront);
+  }
 }
 
 exports.logout = (req, res) => {
-    let token = req.token;
-    let user = req.user;
-    user.tokens.pull(token);
-    user.save();
-    res.send(user);
+  let token = req.token;
+  let user = req.user;
+  let payload = { token, user };
+  let testCaseName = 'USERS-LOGOUT';
+  let resFront = Object.assign({}, Responsive);
+
+  try {
+
+    service.logout(testCaseName, payload).then(resMongo => {
+      resFront.success = true;
+      resFront.data = resMongo;
+      res.send(resFront);
+    }).catch(err => {
+      resFront.error = err.message;
+      return res.status(400).send(resFront);
+    });
+
+  } catch (error) {
+    resFront.error = err.message;
+    return res.status(400).send(resFront);
+  }
 }
 
-function Validate(payload) {
-    let user = _.pick(payload, ['email', 'password']);
-    let schema = {
-        email: Joi.string().required().max(255).trim(),
-        password: Joi.string().required().max(255).trim()
-    };
-    return Joi.validate(user, schema);
-};
+
+exports.read = (req, res) => {
+  let payload = {};
+  let resFront = Object.assign({}, Responsive);
+  let testCaseName = 'USERS-LIST';
+  try {
+
+    service.read(testCaseName, payload).then(resMongo => {
+      resFront.success = true;
+      resFront.data = resMongo;
+      res.send(resFront);
+    }).catch(err => {
+      resFront.error = err.message;
+      return res.status(400).send(resFront);
+    });
+
+  } catch (error) {
+    resFront.error = err.message;
+    return res.status(400).send(resFront);
+  }
+}
+
+exports.readOne = (req, res) => {
+  let id = req.params.id;
+  let resFront = Object.assign({},Responsive);
+  let testCaseName = 'USERS-LIST-ONE';
+  try {
+
+    service.readOne(testCaseName, id).then(resMongo => {
+      resFront.success = true;
+      resFront.data = resMongo;
+      res.send(resFront);
+    }).catch(err => {
+      resFront.error = err.message;
+      return res.status(400).send(resFront);
+    });
+
+  } catch (error) {
+    resFront.error = err.message;
+    return res.status(400).send(resFront);
+  }
+}
+
+exports.update = (req, res) => {
+  let payload = lodash.pick(req.body, ['_id', 'firstname', 'lastname', 'username', 'password']);
+  let resFront = Object.assign({},Responsive);
+  let testCaseName = 'USERS-UPDATE';
+  try {
+
+    // validates
+    if (validates.validateObjectId(payload._id)) {
+      resFront.error = validates.validateObjectId(payload._id)
+      return res.status(400).send(resFront);
+    }
+
+    service.update(testCaseName, payload).then(resMongo => {
+      resFront.success = true;
+      resFront.data = resMongo;
+      res.send(resFront);
+    }).catch(err => {
+      resFront.error = err.message;
+      return res.status(400).send(resFront);
+    });
+
+  } catch (error) {
+    resFront.error = err.message;
+    return res.status(400).send(resFront);
+  }
+}
+
+exports.delete = (req, res) => {
+  let id = req.params.id;
+  let resFront = Object.assign({},Responsive);
+  let testCaseName = 'USERS-DELETE';
+  try {
+
+    // validates
+    let error = validates.validateObjectId(id);
+    if (error) {
+      resFront.error = error;
+      return res.status(400).send(resFront);
+    }
+
+    // call service delete
+    service.delete(testCaseName, id).then(resMongo => {
+      resFront.success = true;
+      resFront.data = resMongo;
+      res.send(resFront);
+    }).catch(err => {
+      resFront.error = err.message;
+      return res.status(400).send(resFront);
+    });
+
+  } catch (err) {
+    resFront.error = err.message;
+    return res.status(400).send(resFront);
+  }
+}
